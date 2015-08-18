@@ -10,6 +10,7 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.chaospvp.board.api.ChunkFaction;
 import org.chaospvp.board.api.ChunkFactionProvider;
@@ -58,15 +59,23 @@ public class FactionsUUIDProvider implements ChunkFactionProvider {
     private boolean isPvpAllowedWg(ChunkInfo ci) {
         try {
             RegionManager regionManager = worldGuard.getRegionManager(ci.getWorld());
-            ApplicableRegionSet set = regionManager.getApplicableRegions(chunkToVector(ci));
-            // non-deprecated method is unreliable
-            return set.allows(DefaultFlag.PVP);
+            for (int i = 54; i <= 72; i += 3) {
+                Vector v = chunkToVector(ci, i);
+                if (!isPvpAllowVector(regionManager, v)) {
+                    return false;
+                }
+            }
+            return true;
         } catch (Throwable t) {
             return true;
         }
     }
 
-    private Vector chunkToVector(ChunkInfo ci) {
-        return new Vector(ci.getX() * 16 + 8, 72, ci.getZ() * 16 + 8);
+    private boolean isPvpAllowVector(RegionManager rm, Vector v) {
+        return rm.getApplicableRegions(v).allows(DefaultFlag.PVP);
+    }
+
+    private Vector chunkToVector(ChunkInfo ci, int y) {
+        return new Vector((ci.getX() << 4) + 8, y, (ci.getZ() << 4) + 8);
     }
 }
