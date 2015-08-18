@@ -59,7 +59,7 @@ public class FactionsUUIDProvider implements ChunkFactionProvider {
     private boolean isPvpAllowedWg(ChunkInfo ci) {
         try {
             RegionManager regionManager = worldGuard.getRegionManager(ci.getWorld());
-            for (int i = 54; i <= 72; i += 3) {
+            for (int i = 54; i <= 74; i += 4) {
                 Vector v = chunkToVector(ci, i);
                 if (!isPvpAllowVector(regionManager, v)) {
                     return false;
