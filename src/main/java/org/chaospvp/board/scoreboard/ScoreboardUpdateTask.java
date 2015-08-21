@@ -10,12 +10,14 @@ import org.chaospvp.board.api.ChunkFactionProvider;
 import org.chaospvp.board.api.ChunkInfo;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ScoreboardUpdateTask extends BukkitRunnable {
     private ChunkFactionProvider provider;
     private Map<UUID, SimpleScoreboard> scoreboards = new HashMap<>();
     private int currentBucket = 0;
     private final int numBuckets = 5;
+    private final int delta = 6;
 
     public ScoreboardUpdateTask(ChunkFactionProvider provider) {
         this.provider = provider;
@@ -25,21 +27,15 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
     public void run() {
         currentBucket++;
         if (currentBucket == numBuckets) currentBucket = 0;
-        Set<UUID> currentOnlineUuids = new HashSet<>();
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            currentOnlineUuids.add(p.getUniqueId());
-        }
+        Set<UUID> currentOnlineUuids = Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId).collect(Collectors.toSet());
         Set<UUID> toRemove = new HashSet<>(scoreboards.keySet());
         toRemove.removeAll(currentOnlineUuids);
-        for (UUID uuid : toRemove) {
-            scoreboards.remove(uuid);
-        }
-        for (UUID uuid : currentOnlineUuids) {
-            if (ChaosBoard.getInstance().applyUsers.contains(uuid)) {
-                Player p = Bukkit.getPlayer(uuid);
-                updateScoreboard(p);
-            }
-        }
+        toRemove.forEach(scoreboards::remove);
+        currentOnlineUuids.stream().filter(ChaosBoard.getInstance().applyUsers::contains)
+                .forEach(uuid -> {
+            Player p = Bukkit.getPlayer(uuid);
+            updateScoreboard(p);
+        });
     }
 
     private void updateScoreboard(Player p) {
