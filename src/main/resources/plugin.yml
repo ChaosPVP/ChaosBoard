@@ -2,7 +2,7 @@ name: ChaosBoard
 main: org.chaospvp.board.ChaosBoard
 version: ${project.version}
 author: vemacs
-depend: [Factions, WorldGuard]
+depend: [Factions, WorldGuard, Vault]
 commands:
   cbtoggle:
     permission: chaosboard.toggle

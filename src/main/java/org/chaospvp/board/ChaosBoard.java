@@ -1,5 +1,6 @@
 package org.chaospvp.board;
 
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,10 +17,13 @@ import java.util.UUID;
 public class ChaosBoard extends JavaPlugin {
     private static ChaosBoard instance;
     public Set<UUID> applyUsers = new HashSet<>();
+    private Economy economy;
 
     @Override
     public void onEnable() {
         instance = this;
+        economy = getServer().getServicesManager()
+                .getRegistration(net.milkbowl.vault.economy.Economy.class).getProvider();
         SimpleScoreboard.precache();
         new ScoreboardUpdateTask(new FactionsUUIDProvider()).runTaskTimer(this, 0, 4);
     }
@@ -41,6 +45,10 @@ public class ChaosBoard extends JavaPlugin {
             sender.sendMessage(ChatColor.YELLOW + "Factions scoreboard has been toggled OFF.");
             return true;
         }
+    }
+
+    public Economy getEconomy() {
+        return economy;
     }
 
     public static ChaosBoard getInstance() {

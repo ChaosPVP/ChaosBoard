@@ -1,5 +1,7 @@
 package org.chaospvp.board.scoreboard;
 
+import com.massivecraft.factions.FPlayer;
+import com.massivecraft.factions.FPlayers;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -76,14 +78,22 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
                 } else {
                     append = "&" + (i + 1);
                 }
-                scoreboard.add(lines.get(i) + append, lines.size() - 1 - i);
+                scoreboard.add(lines.get(i) + append, lines.size() - 1 - i + delta);
             }
         } else {
-            int topScore = 2 * radius;
+            int topScore = 2 * radius + delta;
             String top = scoreboard.get(topScore, "");
             top = removeArrow(top) + "&7" + DirectionUtils.getDirectionArrow(p);
             scoreboard.add(top, topScore);
         }
+        // Factions
+        FPlayer fPlayer = FPlayers.getInstance().getByPlayer(p);
+        String facName = fPlayer.getFaction().getTag();
+        scoreboard.add(ChatColor.GRAY + "Faction", 6);
+        scoreboard.add(ChatColor.RED + facName, 5);
+        int money = (int) ChaosBoard.getInstance().getEconomy().getBalance(p);
+        scoreboard.add(ChatColor.GRAY + "Money", 4);
+        scoreboard.add(ChatColor.RED + "" + money, 3);
         scoreboard.update();
     }
 
