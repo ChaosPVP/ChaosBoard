@@ -16,7 +16,6 @@ import java.util.UUID;
 
 public class ChaosBoard extends JavaPlugin {
     private static ChaosBoard instance;
-    public Set<UUID> applyUsers = new HashSet<>();
     private Economy economy;
 
     @Override
@@ -28,24 +27,6 @@ public class ChaosBoard extends JavaPlugin {
         new ScoreboardUpdateTask(new FactionsUUIDProvider()).runTaskTimer(this, 0, 4);
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Only players can run this command.");
-            return true;
-        }
-        Player p = (Player) sender;
-        UUID uuid = p.getUniqueId();
-        if (!applyUsers.contains(uuid)) {
-            applyUsers.add(uuid);
-            sender.sendMessage(ChatColor.GREEN + "Factions scoreboard has been toggled ON.");
-            return true;
-        } else {
-            applyUsers.remove(uuid);
-            sender.sendMessage(ChatColor.YELLOW + "Factions scoreboard has been toggled OFF.");
-            return true;
-        }
-    }
 
     public Economy getEconomy() {
         return economy;

@@ -7,10 +7,8 @@ import com.massivecraft.factions.Faction;
 import com.massivecraft.factions.struct.Relation;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.chaospvp.board.api.ChunkFaction;
 import org.chaospvp.board.api.ChunkFactionProvider;
@@ -59,13 +57,8 @@ public class FactionsUUIDProvider implements ChunkFactionProvider {
     private boolean isPvpAllowedWg(ChunkInfo ci) {
         try {
             RegionManager regionManager = worldGuard.getRegionManager(ci.getWorld());
-            for (int i = 54; i <= 74; i += 4) {
-                Vector v = chunkToVector(ci, i);
-                if (!isPvpAllowVector(regionManager, v)) {
-                    return false;
-                }
-            }
-            return true;
+            Vector v = chunkToVector(ci, ci.getWorld().getSpawnLocation().getBlockY());
+            return isPvpAllowVector(regionManager, v);
         } catch (Throwable t) {
             return true;
         }

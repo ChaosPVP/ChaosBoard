@@ -33,11 +33,11 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
         Set<UUID> toRemove = new HashSet<>(scoreboards.keySet());
         toRemove.removeAll(currentOnlineUuids);
         toRemove.forEach(scoreboards::remove);
-        currentOnlineUuids.stream().filter(ChaosBoard.getInstance().applyUsers::contains)
+        currentOnlineUuids.stream()
                 .forEach(uuid -> {
-            Player p = Bukkit.getPlayer(uuid);
-            updateScoreboard(p);
-        });
+                    Player p = Bukkit.getPlayer(uuid);
+                    updateScoreboard(p);
+                });
     }
 
     private void updateScoreboard(Player p) {
@@ -89,6 +89,9 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
         // Factions
         FPlayer fPlayer = FPlayers.getInstance().getByPlayer(p);
         String facName = fPlayer.getFaction().getTag();
+        if (ChatColor.stripColor(facName).equals("Wilderness")) {
+            facName = "None";
+        }
         scoreboard.add(ChatColor.GRAY + "Faction", 6);
         scoreboard.add(ChatColor.RED + facName, 5);
         int money = (int) ChaosBoard.getInstance().getEconomy().getBalance(p);
