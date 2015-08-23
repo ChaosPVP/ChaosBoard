@@ -2,6 +2,7 @@ package org.chaospvp.board.scoreboard;
 
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -19,7 +20,7 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
     private Map<UUID, SimpleScoreboard> scoreboards = new HashMap<>();
     private int currentBucket = 0;
     private final int numBuckets = 5;
-    private final int delta = 6;
+    private final int delta = 4;
 
     public ScoreboardUpdateTask(ChunkFactionProvider provider) {
         this.provider = provider;
@@ -80,23 +81,25 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
                 }
                 scoreboard.add(lines.get(i) + append, lines.size() - 1 - i + delta);
             }
+            // Factions
+            FPlayer fPlayer = FPlayers.getInstance().getByPlayer(p);
+            String facName = ChatColor.stripColor(fPlayer.getFaction().getTag());
+            if (facName.equals("Wilderness")) {
+                facName = "None";
+            }
+            scoreboard.add(" ", 3);
+            scoreboard.add(ChatColor.RED + "\u24BB " + facName, 2);
+            scoreboard.add(ChatColor.AQUA + "\u273A " + fPlayer.getPowerRounded() + "/" + fPlayer.getPowerMaxRounded()
+                    , 1);
+            // Vault
+            int money = (int) ChaosBoard.getInstance().getEconomy().getBalance(p);
+            scoreboard.add(ChatColor.GREEN + "\u26C3 $" + money, 0);
         } else {
             int topScore = 2 * radius + delta;
             String top = scoreboard.get(topScore, "");
             top = removeArrow(top) + "&7" + DirectionUtils.getDirectionArrow(p);
             scoreboard.add(top, topScore);
         }
-        // Factions
-        FPlayer fPlayer = FPlayers.getInstance().getByPlayer(p);
-        String facName = fPlayer.getFaction().getTag();
-        if (ChatColor.stripColor(facName).equals("Wilderness")) {
-            facName = "None";
-        }
-        scoreboard.add(ChatColor.GRAY + "Faction", 6);
-        scoreboard.add(ChatColor.RED + facName, 5);
-        int money = (int) ChaosBoard.getInstance().getEconomy().getBalance(p);
-        scoreboard.add(ChatColor.GRAY + "Money", 4);
-        scoreboard.add(ChatColor.RED + "" + money, 3);
         scoreboard.update();
     }
 
