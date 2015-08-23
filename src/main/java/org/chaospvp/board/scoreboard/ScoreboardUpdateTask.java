@@ -1,5 +1,6 @@
 package org.chaospvp.board.scoreboard;
 
+import com.google.common.base.Strings;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
 import org.apache.commons.lang.StringUtils;
@@ -87,7 +88,7 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
             if (facName.equals("Wilderness")) {
                 facName = "None";
             }
-            scoreboard.add(" ", 3);
+            scoreboard.add("&8&m&l" + Strings.repeat("-", Math.max(11, facName.length())), 3);
             scoreboard.add(ChatColor.RED + "\u24BB " + facName, 2);
             scoreboard.add(ChatColor.AQUA + "\u273A " + fPlayer.getPowerRounded() + "/" + fPlayer.getPowerMaxRounded()
                     , 1);
