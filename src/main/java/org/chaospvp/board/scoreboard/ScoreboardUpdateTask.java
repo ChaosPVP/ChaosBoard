@@ -3,7 +3,6 @@ package org.chaospvp.board.scoreboard;
 import com.google.common.base.Strings;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -14,7 +13,6 @@ import org.chaospvp.board.api.ChunkFactionProvider;
 import org.chaospvp.board.api.ChunkInfo;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ScoreboardUpdateTask extends BukkitRunnable {
     private ChunkFactionProvider provider;
@@ -31,15 +29,16 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
     public void run() {
         currentBucket++;
         if (currentBucket == numBuckets) currentBucket = 0;
-        Set<UUID> currentOnlineUuids = Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId).collect(Collectors.toSet());
-        Set<UUID> toRemove = new HashSet<>(scoreboards.keySet());
-        toRemove.removeAll(currentOnlineUuids);
-        toRemove.forEach(scoreboards::remove);
-        currentOnlineUuids.stream()
-                .forEach(uuid -> {
-                    Player p = Bukkit.getPlayer(uuid);
-                    updateScoreboard(p);
-                });
+        Iterator<Map.Entry<UUID, SimpleScoreboard>> itr = scoreboards.entrySet().iterator();
+        while (itr.hasNext()) {
+            Map.Entry<UUID, SimpleScoreboard> entry = itr.next();
+            Player p = Bukkit.getPlayer(entry.getKey());
+            if (p == null) {
+                itr.remove();
+            } else {
+                updateScoreboard(p);
+            }
+        }
     }
 
     private void updateScoreboard(Player p) {
