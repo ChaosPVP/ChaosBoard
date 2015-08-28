@@ -51,55 +51,67 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
             forceCreate = true;
             p.setScoreboard(scoreboard.getScoreboard());
         }
-        int radius = 4;
-        if (Math.floorMod(p.getName().hashCode(), numBuckets) == currentBucket || forceCreate) {
-            List<List<ChunkFaction>> cfRange = new ArrayList<>();
-            ChunkInfo base = new ChunkInfo(p.getLocation());
-            for (int dz = -radius; dz <= radius; dz++) {
-                List<ChunkFaction> row = new ArrayList<>();
-                for (int dx = -radius; dx <= radius; dx++) {
-                    ChunkInfo next = base.addAndCreate(dx, dz);
-                    row.add(provider.getChunkFactionFor(next, p));
-                }
-                cfRange.add(row);
-            }
-            List<String> lines = new ArrayList<>();
-            for (int i = 0; i < cfRange.size(); i++) {
-                List<ChunkFaction> row = cfRange.get(i);
-                if (i == 0) {
-                    row.remove(row.size() - 1);
-                }
-                lines.add(generateLine(row));
-            }
-            for (int i = 0; i < lines.size(); i++) {
-                String append;
-                if (i == 0) {
-                    append = "&7" + DirectionUtils.getDirectionArrow(p);
+        final SimpleScoreboard finalScoreboard = scoreboard;
+        final boolean finalForceCreate = forceCreate;
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                int radius = 4;
+                if (Math.floorMod(p.getName().hashCode(), numBuckets) == currentBucket || finalForceCreate) {
+                    List<List<ChunkFaction>> cfRange = new ArrayList<>();
+                    ChunkInfo base = new ChunkInfo(p.getLocation());
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        List<ChunkFaction> row = new ArrayList<>();
+                        for (int dx = -radius; dx <= radius; dx++) {
+                            ChunkInfo next = base.addAndCreate(dx, dz);
+                            row.add(provider.getChunkFactionFor(next, p));
+                        }
+                        cfRange.add(row);
+                    }
+                    List<String> lines = new ArrayList<>();
+                    for (int i = 0; i < cfRange.size(); i++) {
+                        List<ChunkFaction> row = cfRange.get(i);
+                        if (i == 0) {
+                            row.remove(row.size() - 1);
+                        }
+                        lines.add(generateLine(row));
+                    }
+                    for (int i = 0; i < lines.size(); i++) {
+                        String append;
+                        if (i == 0) {
+                            append = "&7" + DirectionUtils.getDirectionArrow(p);
+                        } else {
+                            append = "&" + (i + 1);
+                        }
+                        finalScoreboard.add(lines.get(i) + append, lines.size() - 1 - i + delta);
+                    }
+                    // Factions
+                    FPlayer fPlayer = FPlayers.getInstance().getByPlayer(p);
+                    String facName = ChatColor.stripColor(fPlayer.getFaction().getTag());
+                    if (facName.equals("Wilderness")) {
+                        facName = "None";
+                    }
+                    finalScoreboard.add("&8&m&l" + Strings.repeat("-", Math.max(11, facName.length())), 3);
+                    finalScoreboard.add(ChatColor.RED + "\u24BB " + facName, 2);
+                    finalScoreboard.add(ChatColor.AQUA + "\u273A " + fPlayer.getPowerRounded() + "/" + fPlayer.getPowerMaxRounded()
+                            , 1);
+                    // Vault
+                    int money = (int) ChaosBoard.getInstance().getEconomy().getBalance(p);
+                    finalScoreboard.add(ChatColor.GREEN + "\u26C3 $" + money, 0);
                 } else {
-                    append = "&" + (i + 1);
+                    int topScore = 2 * radius + delta;
+                    String top = finalScoreboard.get(topScore, "");
+                    top = removeArrow(top) + "&7" + DirectionUtils.getDirectionArrow(p);
+                    finalScoreboard.add(top, topScore);
                 }
-                scoreboard.add(lines.get(i) + append, lines.size() - 1 - i + delta);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        finalScoreboard.update();
+                    }
+                }.runTask(ChaosBoard.getInstance());
             }
-            // Factions
-            FPlayer fPlayer = FPlayers.getInstance().getByPlayer(p);
-            String facName = ChatColor.stripColor(fPlayer.getFaction().getTag());
-            if (facName.equals("Wilderness")) {
-                facName = "None";
-            }
-            scoreboard.add("&8&m&l" + Strings.repeat("-", Math.max(11, facName.length())), 3);
-            scoreboard.add(ChatColor.RED + "\u24BB " + facName, 2);
-            scoreboard.add(ChatColor.AQUA + "\u273A " + fPlayer.getPowerRounded() + "/" + fPlayer.getPowerMaxRounded()
-                    , 1);
-            // Vault
-            int money = (int) ChaosBoard.getInstance().getEconomy().getBalance(p);
-            scoreboard.add(ChatColor.GREEN + "\u26C3 $" + money, 0);
-        } else {
-            int topScore = 2 * radius + delta;
-            String top = scoreboard.get(topScore, "");
-            top = removeArrow(top) + "&7" + DirectionUtils.getDirectionArrow(p);
-            scoreboard.add(top, topScore);
-        }
-        scoreboard.update();
+        }.runTaskAsynchronously(ChaosBoard.getInstance());
     }
 
     private static String removeArrow(String str) {
