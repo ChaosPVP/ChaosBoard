@@ -35,10 +35,9 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
             Player p = Bukkit.getPlayer(entry.getKey());
             if (p == null) {
                 itr.remove();
-            } else {
-                updateScoreboard(p);
             }
         }
+        Bukkit.getOnlinePlayers().forEach(this::updateScoreboard);
     }
 
     private void updateScoreboard(Player p) {
