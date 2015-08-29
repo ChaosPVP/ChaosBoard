@@ -3,3 +3,7 @@ main: org.chaospvp.board.ChaosBoard
 version: ${project.version}
 author: vemacs
 depend: [Factions, WorldGuard, Vault]
+commands:
+  sbtoggle:
+    description: Toggles ChaosBoard
+    usage: /sbtoggle

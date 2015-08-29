@@ -33,7 +33,7 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
         while (itr.hasNext()) {
             Map.Entry<UUID, SimpleScoreboard> entry = itr.next();
             Player p = Bukkit.getPlayer(entry.getKey());
-            if (p == null) {
+            if (p == null || ChaosBoard.getInstance().getDisabledPlayers().contains(p.getUniqueId())) {
                 itr.remove();
             }
         }
@@ -41,6 +41,9 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
     }
 
     private void updateScoreboard(Player p) {
+        if (ChaosBoard.getInstance().getDisabledPlayers().contains(p.getUniqueId())) {
+            return;
+        }
         String chaos = ChatColor.WHITE + "" + ChatColor.BOLD + "Chaos"
                 + ChatColor.DARK_RED + "" + ChatColor.BOLD + "PVP";
         SimpleScoreboard scoreboard = scoreboards.get(p.getUniqueId());
