@@ -44,12 +44,11 @@ public class ScoreboardUpdateTask extends BukkitRunnable {
         if (ChaosBoard.getInstance().getDisabledPlayers().contains(p.getUniqueId())) {
             return;
         }
-        String chaos = ChatColor.DARK_RED + "" + ChatColor.BOLD + "Chaos"
-                + ChatColor.WHITE + "" + ChatColor.BOLD + "PVP";
+        String title = ChaosBoard.getTitle();
         SimpleScoreboard scoreboard = scoreboards.get(p.getUniqueId());
         boolean forceCreate = false;
         if (scoreboard == null) {
-            scoreboard = new SimpleScoreboard(chaos);
+            scoreboard = new SimpleScoreboard(title);
             scoreboards.put(p.getUniqueId(), scoreboard);
             forceCreate = true;
             p.setScoreboard(scoreboard.getScoreboard());

@@ -12,7 +12,6 @@ import org.chaospvp.board.impl.FactionsUUIDProvider;
 import org.chaospvp.board.scoreboard.ScoreboardUpdateTask;
 import org.chaospvp.board.scoreboard.SimpleScoreboard;
 
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,11 +19,13 @@ public class ChaosBoard extends JavaPlugin {
     private static ChaosBoard instance;
     private Economy economy;
     private Set<UUID> disabledPlayers = new HashSet<>();
-    private static final String PREFIX = ChatColor.translateAlternateColorCodes('&', "&8[&f&lChaos&4&lBoard&8] ");
+    private static String prefix;
+    private static String title;
 
     @Override
     public void onEnable() {
         instance = this;
+        saveDefaultConfig();
         economy = getServer().getServicesManager()
                 .getRegistration(net.milkbowl.vault.economy.Economy.class).getProvider();
         SimpleScoreboard.precache();
@@ -37,6 +38,9 @@ public class ChaosBoard extends JavaPlugin {
                 saveDisabled();
             }
         }.runTaskTimerAsynchronously(this, 20, 12000);
+        prefix = ChatColor.translateAlternateColorCodes('&', getConfig().getString("prefix", "&8[&4&lChaos&f&lBoard&8]")
+                + " ");
+        title = ChatColor.translateAlternateColorCodes('&', getConfig().getString("title", "&4&lChaos&f&lPVP"));
     }
 
     @Override
@@ -62,6 +66,10 @@ public class ChaosBoard extends JavaPlugin {
         return disabledPlayers;
     }
 
+    public static String getTitle() {
+        return title;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String lbl, String[] args) {
         if (!(sender instanceof Player)) {
@@ -72,11 +80,11 @@ public class ChaosBoard extends JavaPlugin {
         if (cmd.getName().equals("sbtoggle")) {
             if (disabledPlayers.contains(uuid)) {
                 disabledPlayers.remove(uuid);
-                sender.sendMessage(PREFIX + ChatColor.GREEN + "Scoreboard re-enabled.");
+                sender.sendMessage(prefix + ChatColor.GREEN + "Scoreboard re-enabled.");
             } else {
                 disabledPlayers.add(uuid);
                 ((Player) sender).setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
-                sender.sendMessage(PREFIX + ChatColor.YELLOW + "Scoreboard disabled.");
+                sender.sendMessage(prefix + ChatColor.YELLOW + "Scoreboard disabled.");
             }
             return true;
         }

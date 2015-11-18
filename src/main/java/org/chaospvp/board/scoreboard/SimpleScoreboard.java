@@ -109,7 +109,7 @@ public class SimpleScoreboard {
             String prefixColor = ChatColor.getLastColors(prefix);
             String suffix = iterator.next();
 
-            if (prefix.endsWith("§")) {
+            if (prefix.endsWith("\u00a7")) {
                 prefix = prefix.substring(0, prefix.length() - 1);
                 team.setPrefix(prefix);
                 prefixColor = ChatColor.getByChar(suffix.charAt(0)).toString();
