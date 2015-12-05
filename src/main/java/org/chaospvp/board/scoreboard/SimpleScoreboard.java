@@ -1,6 +1,6 @@
 package org.chaospvp.board.scoreboard;
 
-import com.google.common.base.Preconditions;
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.bukkit.Bukkit;
@@ -9,6 +9,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,6 +24,12 @@ public class SimpleScoreboard {
     private List<Team> teams;
     private List<Integer> removed;
     private Set<String> updated;
+
+    public static void preloadCache() {
+        for (ChatColor color : ChatColor.values()) {
+            cache.put(color.toString(), Bukkit.getOfflinePlayer(color.toString()));
+        }
+    }
 
     public SimpleScoreboard(String title) {
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
@@ -55,7 +62,7 @@ public class SimpleScoreboard {
 
         scores.remove(toRemove);
 
-        if(b)
+        if (b)
             removed.add(score);
 
         return true;
@@ -80,7 +87,7 @@ public class SimpleScoreboard {
         OfflinePlayer result;
 
         if (!cache.containsKey(color.toString()))
-            cache.put(color.toString(), Bukkit.getOfflinePlayer(color.toString()));
+            cache.put(color.toString(), getOfflinePlayerSkipLookup(color.toString()));
 
         result = cache.get(color.toString());
 
@@ -102,14 +109,14 @@ public class SimpleScoreboard {
 
         team.setPrefix(prefix);
 
-        if(!team.hasPlayer(result))
+        if (!team.hasPlayer(result))
             team.addPlayer(result);
 
         if (text.length() > 16) {
             String prefixColor = ChatColor.getLastColors(prefix);
             String suffix = iterator.next();
 
-            if (prefix.endsWith("\u00a7")) {
+            if (prefix.endsWith(String.valueOf(ChatColor.COLOR_CHAR))) {
                 prefix = prefix.substring(0, prefix.length() - 1);
                 team.setPrefix(prefix);
                 prefixColor = ChatColor.getByChar(suffix.charAt(0)).toString();
@@ -160,15 +167,15 @@ public class SimpleScoreboard {
             Team t = scoreboard.getTeam(ChatColor.values()[text.getValue()].toString());
             Map.Entry<Team, OfflinePlayer> team;
 
-            if(!updated.contains(text.getKey())) {
+            if (!updated.contains(text.getKey())) {
                 continue;
             }
 
-            if(t != null) {
+            if (t != null) {
                 String color = ChatColor.values()[text.getValue()].toString();
 
                 if (!cache.containsKey(color)) {
-                    cache.put(color, Bukkit.getOfflinePlayer(color));
+                    cache.put(color, getOfflinePlayerSkipLookup(color));
                 }
 
                 team = new AbstractMap.SimpleEntry<>(t, cache.get(color));
@@ -192,7 +199,7 @@ public class SimpleScoreboard {
     public void setTitle(String title) {
         this.title = ChatColor.translateAlternateColorCodes('&', title);
 
-        if(obj != null)
+        if (obj != null)
             obj.setDisplayName(title);
     }
 
@@ -212,15 +219,38 @@ public class SimpleScoreboard {
             p.setScoreboard(scoreboard);
     }
 
-    public static void precache() {
-        for (ChatColor chatColor : ChatColor.values()) {
-            String chatString = chatColor.toString();
-            if (!cache.containsKey(chatString)) {
-                cache.put(chatString, Bukkit.getOfflinePlayer(chatString));
+    private final UUID invalidUserUUID = UUID.nameUUIDFromBytes("InvalidUsername".getBytes(Charsets.UTF_8));
+    private Class<?> gameProfileClass;
+    private Constructor<?> gameProfileConstructor;
+    private Constructor<?> craftOfflinePlayerConstructor;
+
+    @SuppressWarnings("deprecation")
+    private OfflinePlayer getOfflinePlayerSkipLookup(String name) {
+        try {
+            if (gameProfileConstructor == null) {
+                try { // 1.7
+                    gameProfileClass = Class.forName("net.minecraft.util.com.mojang.authlib.GameProfile");
+                } catch (ClassNotFoundException e) { // 1.8
+                    gameProfileClass = Class.forName("com.mojang.authlib.GameProfile");
+                }
+                gameProfileConstructor = gameProfileClass.getDeclaredConstructor(UUID.class, String.class);
+                gameProfileConstructor.setAccessible(true);
             }
+            if (craftOfflinePlayerConstructor == null) {
+                Class<?> serverClass = Bukkit.getServer().getClass();
+                Class<?> craftOfflinePlayerClass = Class.forName(serverClass.getName()
+                        .replace("CraftServer", "CraftOfflinePlayer"));
+                craftOfflinePlayerConstructor = craftOfflinePlayerClass.getDeclaredConstructor(
+                        serverClass, gameProfileClass
+                );
+                craftOfflinePlayerConstructor.setAccessible(true);
+            }
+            Object gameProfile = gameProfileConstructor.newInstance(invalidUserUUID, name);
+            Object craftOfflinePlayer = craftOfflinePlayerConstructor.newInstance(Bukkit.getServer(), gameProfile);
+            return (OfflinePlayer) craftOfflinePlayer;
+        } catch (Throwable t) { // Fallback if fail
+            t.printStackTrace();
+            return Bukkit.getOfflinePlayer(name);
         }
     }
-
-
 }
-

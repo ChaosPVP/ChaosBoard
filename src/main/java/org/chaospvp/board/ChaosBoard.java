@@ -28,7 +28,7 @@ public class ChaosBoard extends JavaPlugin {
         saveDefaultConfig();
         economy = getServer().getServicesManager()
                 .getRegistration(net.milkbowl.vault.economy.Economy.class).getProvider();
-        SimpleScoreboard.precache();
+        SimpleScoreboard.preloadCache();
         new ScoreboardUpdateTask(new FactionsUUIDProvider()).runTaskTimer(this, 0, 4);
         disabledPlayers.addAll(getConfig().getStringList("disabled")
                 .stream().map(UUID::fromString).collect(Collectors.toList()));
