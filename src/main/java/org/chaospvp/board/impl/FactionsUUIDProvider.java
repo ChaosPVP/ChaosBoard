@@ -60,6 +60,7 @@ public class FactionsUUIDProvider implements ChunkFactionProvider {
             Vector v = chunkToVector(ci, ci.getWorld().getSpawnLocation().getBlockY());
             return isPvpAllowVector(regionManager, v);
         } catch (Throwable t) {
+            t.printStackTrace();
             return true;
         }
     }
